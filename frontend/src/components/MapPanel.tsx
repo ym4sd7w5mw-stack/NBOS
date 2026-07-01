@@ -20,6 +20,7 @@ export default function MapPanel({ entities, selectedEntityId, onSelectEntity }:
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const entitiesRef = useRef<any[]>([]);
+  const loadedRef = useRef(false);
 
   useEffect(() => {
     entitiesRef.current = entities;
@@ -47,58 +48,16 @@ export default function MapPanel({ entities, selectedEntityId, onSelectEntity }:
 
     map.addControl(new maplibregl.NavigationControl(), "top-right");
 
-    map.on("click", "nbos-points", (event) => {
-      const feature = event.features?.[0];
-      const id = feature?.properties?.id;
-      if (!id) return;
+    map.on("load", () => {
+      loadedRef.current = true;
 
-      const entity = entitiesRef.current.find((item) => item.id === id);
-      if (entity) onSelectEntity(entity);
-    });
-
-    map.on("mouseenter", "nbos-points", () => {
-      map.getCanvas().style.cursor = "pointer";
-    });
-
-    map.on("mouseleave", "nbos-points", () => {
-      map.getCanvas().style.cursor = "";
-    });
-
-    mapRef.current = map;
-  }, [onSelectEntity]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    const features = entities
-      .filter((entity) => entity.geometry)
-      .map((entity) => ({
-        type: "Feature",
-        geometry: entity.geometry,
-        properties: {
-          id: entity.id,
-          name: entity.name,
-          type: entity.type,
-          color: colorByType(entity.type),
-          selected: entity.id === selectedEntityId,
-        },
-      }));
-
-    const geojson: any = {
-      type: "FeatureCollection",
-      features,
-    };
-
-    const applyData = () => {
-      const existingSource = map.getSource("nbos") as maplibregl.GeoJSONSource | undefined;
-
-      if (existingSource) {
-        existingSource.setData(geojson);
-      } else {
+      if (!map.getSource("nbos")) {
         map.addSource("nbos", {
           type: "geojson",
-          data: geojson,
+          data: {
+            type: "FeatureCollection",
+            features: [],
+          },
         });
 
         map.addLayer({
@@ -125,6 +84,56 @@ export default function MapPanel({ entities, selectedEntityId, onSelectEntity }:
           },
         });
       }
+    });
+
+    map.on("click", "nbos-points", (event) => {
+      const feature = event.features?.[0];
+      const id = feature?.properties?.id;
+      if (!id) return;
+
+      const entity = entitiesRef.current.find((item) => item.id === id);
+      if (entity) onSelectEntity(entity);
+    });
+
+    map.on("mouseenter", "nbos-points", () => {
+      map.getCanvas().style.cursor = "pointer";
+    });
+
+    map.on("mouseleave", "nbos-points", () => {
+      map.getCanvas().style.cursor = "";
+    });
+
+    mapRef.current = map;
+  }, [onSelectEntity]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const updateMapData = () => {
+      if (!loadedRef.current || !map.getSource("nbos")) return;
+
+      const features = entities
+        .filter((entity) => entity.geometry)
+        .map((entity) => ({
+          type: "Feature",
+          geometry: entity.geometry,
+          properties: {
+            id: entity.id,
+            name: entity.name,
+            type: entity.type,
+            color: colorByType(entity.type),
+            selected: entity.id === selectedEntityId,
+          },
+        }));
+
+      const geojson: any = {
+        type: "FeatureCollection",
+        features,
+      };
+
+      const source = map.getSource("nbos") as maplibregl.GeoJSONSource;
+      source.setData(geojson);
 
       const coordinates: [number, number][] = [];
 
@@ -141,8 +150,8 @@ export default function MapPanel({ entities, selectedEntityId, onSelectEntity }:
       }
     };
 
-    if (map.isStyleLoaded()) applyData();
-    else map.once("load", applyData);
+    if (loadedRef.current) updateMapData();
+    else map.once("load", updateMapData);
   }, [entities, selectedEntityId]);
 
   return (

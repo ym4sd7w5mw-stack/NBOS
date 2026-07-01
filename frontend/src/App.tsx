@@ -8,6 +8,7 @@ import TaskList from "./components/TaskList";
 import MapPanel from "./components/MapPanel";
 import EntityDetailPanel from "./components/EntityDetailPanel";
 import DashboardStats from "./components/DashboardStats";
+import MapDiagnostics from "./components/MapDiagnostics";
 
 function App() {
   const [steward, setSteward] = useState<any>(null);
@@ -33,7 +34,7 @@ function App() {
 
   return (
     <main style={{ fontFamily: "system-ui", padding: 24, maxWidth: 1280, margin: "0 auto" }}>
-      <h1>NBOS Local Digital Twin v2.2</h1>
+      <h1>NBOS Local Digital Twin v2.3</h1>
 
       <ImportPage onChanged={refresh} />
       <DashboardStats entities={entities} tasks={tasks} />
@@ -47,11 +48,15 @@ function App() {
           marginTop: 24,
         }}
       >
-        <MapPanel
-          entities={entities}
-          selectedEntityId={selectedEntity?.id ?? null}
-          onSelectEntity={setSelectedEntity}
-        />
+        <div>
+          <MapPanel
+            entities={entities}
+            selectedEntityId={selectedEntity?.id ?? null}
+            onSelectEntity={setSelectedEntity}
+          />
+          <MapDiagnostics entities={entities} />
+        </div>
+
         <EntityDetailPanel entity={selectedEntity} />
       </div>
 
