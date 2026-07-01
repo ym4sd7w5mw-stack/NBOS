@@ -3,32 +3,38 @@ type PendingPoint = {
   lat: number;
 };
 
+type EntityTypes = Record<
+  string,
+  {
+    label: string;
+    color: string;
+    icon: string;
+  }
+>;
+
 type Props = {
   pendingPoint: PendingPoint | null;
+  entityTypes: EntityTypes;
   onClear: () => void;
   onCreate: (payload: any) => Promise<void>;
 };
 
-const entityTypes = [
-  "Tree",
-  "Hive",
-  "Well",
-  "Pipe",
-  "Building",
-  "Zone",
-  "Sensor",
-  "Camera",
-  "Other",
-];
+export default function SurveyCreatePanel({
+  pendingPoint,
+  entityTypes,
+  onClear,
+  onCreate,
+}: Props) {
+  const typeEntries = Object.entries(entityTypes);
+  const defaultType = typeEntries[0]?.[0] ?? "Other";
 
-export default function SurveyCreatePanel({ pendingPoint, onClear, onCreate }: Props) {
   async function handleSubmit(event: any) {
     event.preventDefault();
     if (!pendingPoint) return;
 
     const form = new FormData(event.currentTarget);
-    const type = String(form.get("type") || "Other");
-    const name = String(form.get("name") || `${type} nový objekt`);
+    const type = String(form.get("type") || defaultType);
+    const name = String(form.get("name") || `${entityTypes[type]?.label ?? type} nový objekt`);
 
     await onCreate({
       type,
@@ -72,10 +78,10 @@ export default function SurveyCreatePanel({ pendingPoint, onClear, onCreate }: P
 
           <label>
             Typ objektu{" "}
-            <select name="type" defaultValue="Tree">
-              {entityTypes.map((type) => (
+            <select name="type" defaultValue={defaultType}>
+              {typeEntries.map(([type, meta]) => (
                 <option key={type} value={type}>
-                  {type}
+                  {meta.label} ({type})
                 </option>
               ))}
             </select>

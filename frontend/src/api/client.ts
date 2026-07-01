@@ -47,5 +47,6 @@ export const api = {
   entities: () => get("/runtime/entities"),
   tasks: () => get("/runtime/tasks"),
   steward: () => get("/runtime/steward"),
+  entityTypes: () => get("/runtime/entity-types"),
   createEntity: (payload: any) => post("/runtime/entities", payload),
 };

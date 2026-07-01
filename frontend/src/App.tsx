@@ -16,6 +16,7 @@ function App() {
   const [steward, setSteward] = useState<any>(null);
   const [entities, setEntities] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
+  const [entityTypes, setEntityTypes] = useState<any>({});
   const [selectedEntity, setSelectedEntity] = useState<any | null>(null);
   const [pendingPoint, setPendingPoint] = useState<{ lng: number; lat: number } | null>(null);
 
@@ -38,12 +39,13 @@ function App() {
   }
 
   useEffect(() => {
+    api.entityTypes().then(setEntityTypes).catch(console.error);
     refresh().catch(console.error);
   }, []);
 
   return (
     <main style={{ fontFamily: "system-ui", padding: 24, maxWidth: 1280, margin: "0 auto" }}>
-      <h1>NBOS Local Digital Twin v2.5</h1>
+      <h1>NBOS Local Digital Twin v2.6</h1>
 
       <ImportPage onChanged={refresh} />
       <DashboardStats entities={entities} tasks={tasks} />
@@ -60,16 +62,18 @@ function App() {
         <div>
           <MapPanel
             entities={entities}
+            entityTypes={entityTypes}
             selectedEntityId={selectedEntity?.id ?? null}
             onSelectEntity={setSelectedEntity}
             onMapClick={setPendingPoint}
           />
           <SurveyCreatePanel
             pendingPoint={pendingPoint}
+            entityTypes={entityTypes}
             onClear={() => setPendingPoint(null)}
             onCreate={createSurveyEntity}
           />
-          <MapLegend />
+          <MapLegend entityTypes={entityTypes} />
           <MapDiagnostics entities={entities} />
         </div>
 

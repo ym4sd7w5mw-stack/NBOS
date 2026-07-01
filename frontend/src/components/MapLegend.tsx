@@ -1,12 +1,15 @@
-const items = [
-  { label: "Studňa / voda", color: "#2563eb" },
-  { label: "Úľ", color: "#f59e0b" },
-  { label: "Strom", color: "#16a34a" },
-  { label: "Potrubie", color: "#0ea5e9" },
-  { label: "Iné", color: "#6b7280" },
-];
+type EntityTypes = Record<
+  string,
+  {
+    label: string;
+    color: string;
+    icon: string;
+  }
+>;
 
-export default function MapLegend() {
+export default function MapLegend({ entityTypes }: { entityTypes: EntityTypes }) {
+  const items = Object.entries(entityTypes);
+
   return (
     <section
       style={{
@@ -19,8 +22,8 @@ export default function MapLegend() {
     >
       <h3 style={{ marginTop: 0 }}>Legenda mapy</h3>
       <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
-        {items.map((item) => (
-          <div key={item.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {items.map(([type, item]) => (
+          <div key={type} style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span
               style={{
                 width: 14,
@@ -32,7 +35,9 @@ export default function MapLegend() {
                 display: "inline-block",
               }}
             />
-            <span>{item.label}</span>
+            <span>
+              {item.label} <small>({type})</small>
+            </span>
           </div>
         ))}
       </div>

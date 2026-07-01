@@ -2,23 +2,30 @@ import React, { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 
+type EntityTypes = Record<
+  string,
+  {
+    label: string;
+    color: string;
+    icon: string;
+  }
+>;
+
 type Props = {
   entities: any[];
+  entityTypes: EntityTypes;
   selectedEntityId: string | null;
   onSelectEntity: (entity: any) => void;
   onMapClick?: (lngLat: { lng: number; lat: number }) => void;
 };
 
-function colorByType(type: string) {
-  if (type === "Well") return "#2563eb";
-  if (type === "Hive") return "#f59e0b";
-  if (type === "Tree") return "#16a34a";
-  if (type === "Pipe") return "#0ea5e9";
-  return "#6b7280";
+function colorByType(type: string, entityTypes: EntityTypes) {
+  return entityTypes[type]?.color ?? "#6b7280";
 }
 
 export default function MapPanel({
   entities,
+  entityTypes,
   selectedEntityId,
   onSelectEntity,
   onMapClick,
@@ -26,11 +33,13 @@ export default function MapPanel({
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const entitiesRef = useRef<any[]>([]);
+  const entityTypesRef = useRef<EntityTypes>({});
   const loadedRef = useRef(false);
 
   useEffect(() => {
     entitiesRef.current = entities;
-  }, [entities]);
+    entityTypesRef.current = entityTypes;
+  }, [entities, entityTypes]);
 
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
@@ -137,7 +146,7 @@ export default function MapPanel({
             id: entity.id,
             name: entity.name,
             type: entity.type,
-            color: colorByType(entity.type),
+            color: colorByType(entity.type, entityTypes),
             selected: entity.id === selectedEntityId,
           },
         }));
@@ -167,7 +176,7 @@ export default function MapPanel({
 
     if (loadedRef.current) updateMapData();
     else map.once("load", updateMapData);
-  }, [entities, selectedEntityId]);
+  }, [entities, entityTypes, selectedEntityId]);
 
   return (
     <section style={{ marginTop: 24 }}>
