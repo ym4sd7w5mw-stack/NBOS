@@ -5,6 +5,7 @@ from app.core.config import settings
 from app.api.runtime import router as runtime_router
 from app.api.entity_types import router as entity_types_router
 from app.api.object_definitions import router as object_definitions_router
+from app.api.advisor import router as advisor_router
 from app.runtime.store import load_snapshot
 
 app = FastAPI(
@@ -37,3 +38,4 @@ def root():
 app.include_router(runtime_router)
 app.include_router(entity_types_router)
 app.include_router(object_definitions_router)
+app.include_router(advisor_router)
