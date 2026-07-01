@@ -24,6 +24,23 @@ def load(payload: dict):
     save_snapshot()
     return report
 
+@router.post("/entities")
+def create_entity(payload: dict):
+    entity_id = payload.get("id") or f"{payload.get('type', 'Object').upper()}-{len(RUNTIME_ENTITIES) + 1:04d}"
+    entity = {
+        "id": entity_id,
+        "type": payload.get("type", "Object"),
+        "name": payload.get("name", entity_id),
+        "geometry": payload.get("geometry"),
+        "properties": payload.get("properties", {}),
+        "relations": payload.get("relations", []),
+        "photos": payload.get("photos", []),
+        "timeline": payload.get("timeline", []),
+    }
+    upsert_entities([entity])
+    save_snapshot()
+    return entity
+
 @router.post("/upload/field-package-json")
 async def upload_field_package_json(file: UploadFile = File(...)):
     payload = json.loads((await file.read()).decode("utf-8"))
