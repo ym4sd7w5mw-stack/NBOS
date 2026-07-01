@@ -7,6 +7,7 @@ import EntityList from "./components/EntityList";
 import TaskList from "./components/TaskList";
 import MapPanel from "./components/MapPanel";
 import EntityDetailPanel from "./components/EntityDetailPanel";
+import DashboardStats from "./components/DashboardStats";
 
 function App() {
   const [steward, setSteward] = useState<any>(null);
@@ -31,15 +32,29 @@ function App() {
   }, []);
 
   return (
-    <main style={{ fontFamily: "system-ui", padding: 24, maxWidth: 1200, margin: "0 auto" }}>
-      <h1>NBOS Local Digital Twin v2.1</h1>
+    <main style={{ fontFamily: "system-ui", padding: 24, maxWidth: 1280, margin: "0 auto" }}>
+      <h1>NBOS Local Digital Twin v2.2</h1>
+
       <ImportPage onChanged={refresh} />
-      <MapPanel
-        entities={entities}
-        selectedEntityId={selectedEntity?.id ?? null}
-        onSelectEntity={setSelectedEntity}
-      />
-      <EntityDetailPanel entity={selectedEntity} />
+      <DashboardStats entities={entities} tasks={tasks} />
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "2fr 1fr",
+          gap: 24,
+          alignItems: "start",
+          marginTop: 24,
+        }}
+      >
+        <MapPanel
+          entities={entities}
+          selectedEntityId={selectedEntity?.id ?? null}
+          onSelectEntity={setSelectedEntity}
+        />
+        <EntityDetailPanel entity={selectedEntity} />
+      </div>
+
       <MissionControl entities={entities} tasks={tasks} steward={steward} />
       <EntityList entities={entities} />
       <TaskList tasks={tasks} />
