@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.api.runtime import router as runtime_router
+from app.api.entity_types import router as entity_types_router
 from app.runtime.store import load_snapshot
 
 app = FastAPI(
@@ -33,3 +34,4 @@ def root():
     }
 
 app.include_router(runtime_router)
+app.include_router(entity_types_router)
