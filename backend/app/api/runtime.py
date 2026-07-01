@@ -21,6 +21,7 @@ def load(payload: dict):
     upsert_entities(payload.get("objects", payload.get("entities", [])))
     report = steward_next_actions(RUNTIME_ENTITIES, RUNTIME_MEDIA)
     RUNTIME_REPORTS.append(report)
+    save_snapshot()
     return report
 
 @router.post("/upload/field-package-json")
@@ -32,6 +33,7 @@ async def upload_field_package_json(file: UploadFile = File(...)):
 async def upload_gps(file: UploadFile = File(...)):
     entities, warnings = gps_csv_to_entities((await file.read()).decode("utf-8"))
     upsert_entities(entities)
+    save_snapshot()
     return {"imported": len(entities), "warnings": warnings, "steward": steward_next_actions(RUNTIME_ENTITIES, RUNTIME_MEDIA)}
 
 @router.post("/upload/photo-log")
@@ -39,6 +41,7 @@ async def upload_photo(file: UploadFile = File(...)):
     rows, warnings = parse_photo_log((await file.read()).decode("utf-8"))
     RUNTIME_MEDIA.extend(rows)
     linked = attach_photos(RUNTIME_ENTITIES, rows)
+    save_snapshot()
     return {"photos": len(rows), "linked": linked, "warnings": warnings, "steward": steward_next_actions(RUNTIME_ENTITIES, RUNTIME_MEDIA)}
 
 @router.get("/entities")
@@ -81,6 +84,10 @@ def event(payload: dict):
 @router.get("/snapshot")
 def get_snapshot():
     return save_snapshot()
+
+@router.post("/snapshot/load")
+def load_saved_snapshot():
+    return load_snapshot()
 
 @router.get("/drone/mission-alpha")
 def mission_alpha(date: str = "YYYY-MM-DD"):

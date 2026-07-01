@@ -32,6 +32,7 @@ def add_event(event: dict):
     entity = get_entity(event.get("entity_id"))
     if entity:
         entity.setdefault("timeline", []).append(event)
+    save_snapshot()
     return event
 
 def snapshot_payload():
@@ -47,8 +48,8 @@ def snapshot_payload():
             "media": len(RUNTIME_MEDIA),
             "reports": len(RUNTIME_REPORTS),
             "events": len(RUNTIME_EVENTS),
-            "measurements": len(RUNTIME_MEASUREMENTS)
-        }
+            "measurements": len(RUNTIME_MEASUREMENTS),
+        },
     }
 
 def save_snapshot(path: str | None = None):
@@ -57,3 +58,24 @@ def save_snapshot(path: str | None = None):
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     return payload
+
+def load_snapshot(path: str | None = None):
+    snapshot = Path(path or settings.snapshot_path)
+    if not snapshot.exists():
+        return {"loaded": False, "reason": "snapshot not found"}
+
+    payload = json.loads(snapshot.read_text(encoding="utf-8"))
+    clear_runtime()
+    RUNTIME_ENTITIES.extend(payload.get("objects", []))
+    RUNTIME_MEDIA.extend(payload.get("media", []))
+    RUNTIME_REPORTS.extend(payload.get("reports", []))
+    RUNTIME_EVENTS.extend(payload.get("events", []))
+    RUNTIME_MEASUREMENTS.extend(payload.get("measurements", []))
+
+    return {
+        "loaded": True,
+        "objects": len(RUNTIME_ENTITIES),
+        "media": len(RUNTIME_MEDIA),
+        "events": len(RUNTIME_EVENTS),
+        "measurements": len(RUNTIME_MEASUREMENTS),
+    }

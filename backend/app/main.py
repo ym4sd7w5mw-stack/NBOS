@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.core.config import settings
 from app.api.runtime import router as runtime_router
+from app.runtime.store import load_snapshot
 
 app = FastAPI(
     title=settings.app_name,
@@ -17,6 +18,11 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+@app.on_event("startup")
+def startup_load_snapshot():
+    result = load_snapshot()
+    print("NBOS snapshot autoload:", result)
 
 @app.get("/")
 def root():

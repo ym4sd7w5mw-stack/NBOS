@@ -1,0 +1,200 @@
+{
+  "snapshot_version": "1.8",
+  "objects": [
+    {
+      "id": "WELL-0001",
+      "type": "Well",
+      "name": "Vrt pri kurínoch",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.0001,
+          48.0001
+        ]
+      },
+      "properties": {
+        "confidence": 0.8
+      },
+      "relations": [
+        {
+          "type": "feeds",
+          "target_id": "PIPE-0001"
+        }
+      ]
+    },
+    {
+      "id": "PIPE-0001",
+      "type": "Pipe",
+      "name": "Hlavná PE32",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            17.0001,
+            48.0001
+          ],
+          [
+            17.0002,
+            48.0002
+          ]
+        ]
+      },
+      "properties": {
+        "confidence": 0.5
+      },
+      "relations": [
+        {
+          "type": "irrigates",
+          "target_id": "TREE-0001"
+        }
+      ]
+    },
+    {
+      "id": "TREE-0001",
+      "type": "Tree",
+      "name": "Jabloň referenčná",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.0002,
+          48.0002
+        ]
+      },
+      "properties": {
+        "confidence": 0.7
+      },
+      "relations": []
+    },
+    {
+      "id": "HIVE-0001",
+      "type": "Hive",
+      "name": "Úľ 1",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.0003,
+          48.0003
+        ]
+      },
+      "properties": {
+        "confidence": 0.7
+      },
+      "relations": [
+        {
+          "type": "pollinates",
+          "target_id": "TREE-0001"
+        }
+      ]
+    }
+  ],
+  "media": [],
+  "reports": [
+    {
+      "summary": "NBOS Steward pripravil ďalšie kroky pre zlepšenie digitálneho dvojčaťa.",
+      "report": {
+        "objects": 4,
+        "media": 0,
+        "relations": 3,
+        "warnings": [],
+        "quality": {
+          "average_score": 71.0,
+          "items": [
+            {
+              "entity_id": "WELL-0001",
+              "score": 76,
+              "missing": [
+                "photos",
+                "timeline"
+              ]
+            },
+            {
+              "entity_id": "PIPE-0001",
+              "score": 70,
+              "missing": [
+                "photos",
+                "timeline"
+              ]
+            },
+            {
+              "entity_id": "TREE-0001",
+              "score": 64,
+              "missing": [
+                "photos",
+                "relations",
+                "timeline"
+              ]
+            },
+            {
+              "entity_id": "HIVE-0001",
+              "score": 74,
+              "missing": [
+                "photos",
+                "timeline"
+              ]
+            }
+          ],
+          "low_quality": []
+        },
+        "tasks": [
+          {
+            "id": "TASK-WELL-0001-PHOTO",
+            "entity_id": "WELL-0001",
+            "priority": "normal",
+            "title": "Nafotiť objekt WELL-0001"
+          },
+          {
+            "id": "TASK-PIPE-0001-PHOTO",
+            "entity_id": "PIPE-0001",
+            "priority": "normal",
+            "title": "Nafotiť objekt PIPE-0001"
+          },
+          {
+            "id": "TASK-TREE-0001-PHOTO",
+            "entity_id": "TREE-0001",
+            "priority": "normal",
+            "title": "Nafotiť objekt TREE-0001"
+          },
+          {
+            "id": "TASK-TREE-0001-RELATION",
+            "entity_id": "TREE-0001",
+            "priority": "low",
+            "title": "Doplniť vzťahy pre TREE-0001"
+          },
+          {
+            "id": "TASK-HIVE-0001-PHOTO",
+            "entity_id": "HIVE-0001",
+            "priority": "normal",
+            "title": "Nafotiť objekt HIVE-0001"
+          }
+        ]
+      },
+      "schedule_suggestions": [
+        {
+          "entity_id": "WELL-0001",
+          "priority": "high",
+          "suggestion": "Spraviť prietokový test vrtu."
+        },
+        {
+          "entity_id": "TREE-0001",
+          "priority": "normal",
+          "suggestion": "Doplniť fotku stromu a základný pas."
+        },
+        {
+          "entity_id": "HIVE-0001",
+          "priority": "normal",
+          "suggestion": "Naplánovať prvú kontrolu úľa."
+        }
+      ],
+      "next_actions": []
+    }
+  ],
+  "events": [],
+  "measurements": [],
+  "counts": {
+    "objects": 4,
+    "media": 0,
+    "reports": 1,
+    "events": 0,
+    "measurements": 0
+  }
+}
