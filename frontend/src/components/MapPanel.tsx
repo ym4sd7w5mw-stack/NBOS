@@ -4,9 +4,19 @@ import "maplibre-gl/dist/maplibre-gl.css";
 
 type Props = {
   entities: any[];
+  selectedEntityId: string | null;
+  onSelectEntity: (entity: any) => void;
 };
 
-export default function MapPanel({ entities }: Props) {
+function colorByType(type: string) {
+  if (type === "Well") return "#2563eb";
+  if (type === "Hive") return "#f59e0b";
+  if (type === "Tree") return "#16a34a";
+  if (type === "Pipe") return "#0ea5e9";
+  return "#6b7280";
+}
+
+export default function MapPanel({ entities, selectedEntityId, onSelectEntity }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
@@ -37,19 +47,23 @@ export default function MapPanel({ entities }: Props) {
     const map = mapRef.current;
     if (!map) return;
 
+    const features = entities
+      .filter((entity) => entity.geometry)
+      .map((entity) => ({
+        type: "Feature",
+        geometry: entity.geometry,
+        properties: {
+          id: entity.id,
+          name: entity.name,
+          type: entity.type,
+          color: colorByType(entity.type),
+          selected: entity.id === selectedEntityId,
+        },
+      }));
+
     const geojson: any = {
       type: "FeatureCollection",
-      features: entities
-        .filter((entity) => entity.geometry)
-        .map((entity) => ({
-          type: "Feature",
-          geometry: entity.geometry,
-          properties: {
-            id: entity.id,
-            name: entity.name,
-            type: entity.type,
-          },
-        })),
+      features,
     };
 
     const applyData = () => {
@@ -57,54 +71,70 @@ export default function MapPanel({ entities }: Props) {
 
       if (existingSource) {
         existingSource.setData(geojson);
-        return;
+      } else {
+        map.addSource("nbos", {
+          type: "geojson",
+          data: geojson,
+        });
+
+        map.addLayer({
+          id: "nbos-lines",
+          type: "line",
+          source: "nbos",
+          filter: ["==", ["geometry-type"], "LineString"],
+          paint: {
+            "line-width": 4,
+            "line-color": ["get", "color"],
+          },
+        });
+
+        map.addLayer({
+          id: "nbos-points",
+          type: "circle",
+          source: "nbos",
+          filter: ["==", ["geometry-type"], "Point"],
+          paint: {
+            "circle-radius": ["case", ["==", ["get", "selected"], true], 13, 9],
+            "circle-color": ["get", "color"],
+            "circle-stroke-width": 3,
+            "circle-stroke-color": "#ffffff",
+          },
+        });
+
+        map.on("click", "nbos-points", (event) => {
+          const feature = event.features?.[0];
+          if (!feature) return;
+          const entity = entities.find((item) => item.id === feature.properties?.id);
+          if (entity) onSelectEntity(entity);
+        });
+
+        map.on("mouseenter", "nbos-points", () => {
+          map.getCanvas().style.cursor = "pointer";
+        });
+
+        map.on("mouseleave", "nbos-points", () => {
+          map.getCanvas().style.cursor = "";
+        });
       }
 
-      map.addSource("nbos", {
-        type: "geojson",
-        data: geojson,
-      });
+      const coordinates: [number, number][] = [];
 
-      map.addLayer({
-        id: "nbos-lines",
-        type: "line",
-        source: "nbos",
-        filter: ["==", ["geometry-type"], "LineString"],
-        paint: {
-          "line-width": 4,
-          "line-color": "#2563eb",
-        },
-      });
+      for (const feature of features) {
+        const geometry: any = feature.geometry;
+        if (geometry.type === "Point") coordinates.push(geometry.coordinates);
+        if (geometry.type === "LineString") coordinates.push(...geometry.coordinates);
+      }
 
-      map.addLayer({
-        id: "nbos-points",
-        type: "circle",
-        source: "nbos",
-        filter: ["==", ["geometry-type"], "Point"],
-        paint: {
-          "circle-radius": 9,
-          "circle-color": "#16a34a",
-          "circle-stroke-width": 2,
-          "circle-stroke-color": "#ffffff",
-        },
-      });
-
-      map.on("click", "nbos-points", (event) => {
-        const feature = event.features?.[0];
-        if (!feature) return;
-
-        new maplibregl.Popup()
-          .setLngLat((feature.geometry as any).coordinates)
-          .setHTML(
-            `<strong>${feature.properties?.id}</strong><br/>${feature.properties?.name}<br/>${feature.properties?.type}`
-          )
-          .addTo(map);
-      });
+      if (coordinates.length > 0) {
+        const bounds = new maplibregl.LngLatBounds(coordinates[0], coordinates[0]);
+        coordinates.forEach((coord) => bounds.extend(coord));
+        map.fitBounds(bounds, { padding: 80, maxZoom: 18, duration: 600 });
+      }
     };
 
     if (map.isStyleLoaded()) applyData();
     else map.once("load", applyData);
-  }, [entities]);
+  }, [entities, selectedEntityId, onSelectEntity]);
 
   return (
     <section style={{ marginTop: 24 }}>
@@ -113,7 +143,7 @@ export default function MapPanel({ entities }: Props) {
         ref={mapContainer}
         style={{
           width: "100%",
-          height: 480,
+          height: 520,
           borderRadius: 12,
           overflow: "hidden",
           border: "1px solid #ddd",
