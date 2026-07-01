@@ -103,6 +103,24 @@
       "relations": [],
       "photos": [],
       "timeline": []
+    },
+    {
+      "id": "TREE-0006",
+      "type": "Tree",
+      "name": "Slovka President",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          17.000491019678407,
+          48.00018311830968
+        ]
+      },
+      "properties": {
+        "source": "manual_map_click"
+      },
+      "relations": [],
+      "photos": [],
+      "timeline": []
     }
   ],
   "media": [],
@@ -209,7 +227,7 @@
   "events": [],
   "measurements": [],
   "counts": {
-    "objects": 5,
+    "objects": 6,
     "media": 0,
     "reports": 1,
     "events": 0,

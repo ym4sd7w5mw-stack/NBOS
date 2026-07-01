@@ -9,12 +9,15 @@ import MapPanel from "./components/MapPanel";
 import EntityDetailPanel from "./components/EntityDetailPanel";
 import DashboardStats from "./components/DashboardStats";
 import MapDiagnostics from "./components/MapDiagnostics";
+import MapLegend from "./components/MapLegend";
+import SurveyCreatePanel from "./components/SurveyCreatePanel";
 
 function App() {
   const [steward, setSteward] = useState<any>(null);
   const [entities, setEntities] = useState<any[]>([]);
   const [tasks, setTasks] = useState<any[]>([]);
   const [selectedEntity, setSelectedEntity] = useState<any | null>(null);
+  const [pendingPoint, setPendingPoint] = useState<{ lng: number; lat: number } | null>(null);
 
   async function refresh() {
     const loadedEntities = await api.entities();
@@ -28,13 +31,19 @@ function App() {
     }
   }
 
+  async function createSurveyEntity(payload: any) {
+    const created = await api.createEntity(payload);
+    setSelectedEntity(created);
+    await refresh();
+  }
+
   useEffect(() => {
     refresh().catch(console.error);
   }, []);
 
   return (
     <main style={{ fontFamily: "system-ui", padding: 24, maxWidth: 1280, margin: "0 auto" }}>
-      <h1>NBOS Local Digital Twin v2.3</h1>
+      <h1>NBOS Local Digital Twin v2.5</h1>
 
       <ImportPage onChanged={refresh} />
       <DashboardStats entities={entities} tasks={tasks} />
@@ -53,7 +62,14 @@ function App() {
             entities={entities}
             selectedEntityId={selectedEntity?.id ?? null}
             onSelectEntity={setSelectedEntity}
+            onMapClick={setPendingPoint}
           />
+          <SurveyCreatePanel
+            pendingPoint={pendingPoint}
+            onClear={() => setPendingPoint(null)}
+            onCreate={createSurveyEntity}
+          />
+          <MapLegend />
           <MapDiagnostics entities={entities} />
         </div>
 

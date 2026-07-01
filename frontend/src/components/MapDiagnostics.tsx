@@ -11,12 +11,17 @@ function isValidCoordinate(coord: any) {
   );
 }
 
+function coordinateKey(coord: [number, number]) {
+  return `${coord[0].toFixed(6)},${coord[1].toFixed(6)}`;
+}
+
 function geometryStats(entities: any[]) {
   let points = 0;
   let lines = 0;
   let polygons = 0;
   const missing: string[] = [];
   const invalid: string[] = [];
+  const pointGroups: Record<string, string[]> = {};
 
   for (const entity of entities) {
     const geometry = entity.geometry;
@@ -27,8 +32,13 @@ function geometryStats(entities: any[]) {
     }
 
     if (geometry.type === "Point") {
-      if (isValidCoordinate(geometry.coordinates)) points += 1;
-      else invalid.push(entity.id);
+      if (isValidCoordinate(geometry.coordinates)) {
+        points += 1;
+        const key = coordinateKey(geometry.coordinates);
+        pointGroups[key] = [...(pointGroups[key] || []), entity.id];
+      } else {
+        invalid.push(entity.id);
+      }
       continue;
     }
 
@@ -49,7 +59,11 @@ function geometryStats(entities: any[]) {
     invalid.push(entity.id);
   }
 
-  return { points, lines, polygons, missing, invalid };
+  const overlaps = Object.entries(pointGroups)
+    .filter(([, ids]) => ids.length > 1)
+    .map(([coord, ids]) => ({ coord, ids }));
+
+  return { points, lines, polygons, missing, invalid, overlaps };
 }
 
 export default function MapDiagnostics({ entities }: Props) {
@@ -58,7 +72,7 @@ export default function MapDiagnostics({ entities }: Props) {
   return (
     <section
       style={{
-        marginTop: 16,
+        marginTop: 12,
         padding: 14,
         border: "1px solid #ddd",
         borderRadius: 12,
@@ -70,6 +84,19 @@ export default function MapDiagnostics({ entities }: Props) {
         <b>Objekty:</b> {entities.length} | <b>Body:</b> {stats.points} |{" "}
         <b>Línie:</b> {stats.lines} | <b>Polygóny:</b> {stats.polygons}
       </p>
+
+      {stats.overlaps.length > 0 && (
+        <div style={{ marginTop: 10 }}>
+          <b>Prekryté body:</b>
+          <ul>
+            {stats.overlaps.map((item) => (
+              <li key={item.coord}>
+                {item.coord}: {item.ids.join(", ")}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       {stats.missing.length > 0 && (
         <p>

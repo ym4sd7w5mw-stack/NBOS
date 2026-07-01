@@ -6,6 +6,7 @@ type Props = {
   entities: any[];
   selectedEntityId: string | null;
   onSelectEntity: (entity: any) => void;
+  onMapClick?: (lngLat: { lng: number; lat: number }) => void;
 };
 
 function colorByType(type: string) {
@@ -16,7 +17,12 @@ function colorByType(type: string) {
   return "#6b7280";
 }
 
-export default function MapPanel({ entities, selectedEntityId, onSelectEntity }: Props) {
+export default function MapPanel({
+  entities,
+  selectedEntityId,
+  onSelectEntity,
+  onMapClick,
+}: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const entitiesRef = useRef<any[]>([]);
@@ -86,13 +92,22 @@ export default function MapPanel({ entities, selectedEntityId, onSelectEntity }:
       }
     });
 
-    map.on("click", "nbos-points", (event) => {
-      const feature = event.features?.[0];
-      const id = feature?.properties?.id;
-      if (!id) return;
+    map.on("click", (event) => {
+      const features = map.queryRenderedFeatures(event.point, {
+        layers: ["nbos-points"],
+      });
 
-      const entity = entitiesRef.current.find((item) => item.id === id);
-      if (entity) onSelectEntity(entity);
+      if (features.length > 0) {
+        const id = features[0].properties?.id;
+        const entity = entitiesRef.current.find((item) => item.id === id);
+        if (entity) onSelectEntity(entity);
+        return;
+      }
+
+      onMapClick?.({
+        lng: event.lngLat.lng,
+        lat: event.lngLat.lat,
+      });
     });
 
     map.on("mouseenter", "nbos-points", () => {
@@ -104,7 +119,7 @@ export default function MapPanel({ entities, selectedEntityId, onSelectEntity }:
     });
 
     mapRef.current = map;
-  }, [onSelectEntity]);
+  }, [onSelectEntity, onMapClick]);
 
   useEffect(() => {
     const map = mapRef.current;
