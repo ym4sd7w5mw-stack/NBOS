@@ -1,0 +1,24 @@
+{
+  "mission_set": "MISSION_ALPHA",
+  "date": "YYYY-MM-DD",
+  "missions": [
+    {
+      "id": "M001_ORTHO",
+      "height_m_agl": 50,
+      "gimbal_deg": -90,
+      "priority": "critical"
+    },
+    {
+      "id": "M002_BUILDINGS",
+      "height_m_agl": 30,
+      "gimbal_deg": -55,
+      "priority": "high"
+    },
+    {
+      "id": "M003_CONTEXT",
+      "height_m_agl": 40,
+      "gimbal_deg": -45,
+      "priority": "normal"
+    }
+  ]
+}

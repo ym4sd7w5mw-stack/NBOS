@@ -1,0 +1,4 @@
+object_id,type,name,lat,lon,accuracy_m,lod,notes,confidence
+WELL-0001,Well,Vrt pri kurínoch,,,,LOD2,,0.8
+BUILD-0001,Building,Dom,,,,LOD2,,0.7
+HIVE-0001,Hive,Úľ 1,,,,LOD2,,0.7
