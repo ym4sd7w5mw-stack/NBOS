@@ -19,11 +19,16 @@ function colorByType(type: string) {
 export default function MapPanel({ entities, selectedEntityId, onSelectEntity }: Props) {
   const mapContainer = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const entitiesRef = useRef<any[]>([]);
+
+  useEffect(() => {
+    entitiesRef.current = entities;
+  }, [entities]);
 
   useEffect(() => {
     if (!mapContainer.current || mapRef.current) return;
 
-    mapRef.current = new maplibregl.Map({
+    const map = new maplibregl.Map({
       container: mapContainer.current,
       style: {
         version: 8,
@@ -40,8 +45,27 @@ export default function MapPanel({ entities, selectedEntityId, onSelectEntity }:
       zoom: 17,
     });
 
-    mapRef.current.addControl(new maplibregl.NavigationControl(), "top-right");
-  }, []);
+    map.addControl(new maplibregl.NavigationControl(), "top-right");
+
+    map.on("click", "nbos-points", (event) => {
+      const feature = event.features?.[0];
+      const id = feature?.properties?.id;
+      if (!id) return;
+
+      const entity = entitiesRef.current.find((item) => item.id === id);
+      if (entity) onSelectEntity(entity);
+    });
+
+    map.on("mouseenter", "nbos-points", () => {
+      map.getCanvas().style.cursor = "pointer";
+    });
+
+    map.on("mouseleave", "nbos-points", () => {
+      map.getCanvas().style.cursor = "";
+    });
+
+    mapRef.current = map;
+  }, [onSelectEntity]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -100,21 +124,6 @@ export default function MapPanel({ entities, selectedEntityId, onSelectEntity }:
             "circle-stroke-color": "#ffffff",
           },
         });
-
-        map.on("click", "nbos-points", (event) => {
-          const feature = event.features?.[0];
-          if (!feature) return;
-          const entity = entities.find((item) => item.id === feature.properties?.id);
-          if (entity) onSelectEntity(entity);
-        });
-
-        map.on("mouseenter", "nbos-points", () => {
-          map.getCanvas().style.cursor = "pointer";
-        });
-
-        map.on("mouseleave", "nbos-points", () => {
-          map.getCanvas().style.cursor = "";
-        });
       }
 
       const coordinates: [number, number][] = [];
@@ -134,7 +143,7 @@ export default function MapPanel({ entities, selectedEntityId, onSelectEntity }:
 
     if (map.isStyleLoaded()) applyData();
     else map.once("load", applyData);
-  }, [entities, selectedEntityId, onSelectEntity]);
+  }, [entities, selectedEntityId]);
 
   return (
     <section style={{ marginTop: 24 }}>
